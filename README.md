@@ -1,5 +1,8 @@
-# tech-week
+# Madeira oktober reisblogs
 
-Static briefings hosted on GitHub Pages.
+Interactieve reisgids voor een week Madeira in oktober — levada's, westkust, Funchal-base.
+Vanuit Nederland, met eten, overnachten en praktisch advies.
 
 🔗 **Live site:** <https://programtjan.github.io/tech-week/>
+
+Elke publish vervangt de vorige site op deze URL.
