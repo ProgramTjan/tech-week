@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tech Week · AI & Autonomie · 6–12 sep 2026</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a2f;
+      --line: #2a3a5c;
+      --text: #e8eefc;
+      --muted: #9aadc9;
+      --accent: #6ee7ff;
+      --warm: #ffb86b;
+      --green: #7dffa3;
+      --pink: #ff8ec8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1a2b55 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #3a1a40 0%, transparent 45%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 2rem 1rem 4rem;
+    }
+    .wrap { max-width: 820px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 1.5rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(110,231,255,.08), transparent);
+    }
+    header h1 {
+      margin: 0 0 .4rem;
+      font-size: clamp(1.5rem, 4vw, 2.1rem);
+      letter-spacing: -0.02em;
+    }
+    header p { margin: 0; color: var(--muted); }
+    .pill {
+      display: inline-block;
+      margin-top: .9rem;
+      padding: .35rem .75rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--accent);
+      font-size: .85rem;
+    }
+    .divider {
+      text-align: center;
+      color: var(--muted);
+      letter-spacing: .08em;
+      margin: 1.75rem 0 1.1rem;
+      font-size: .85rem;
+      user-select: none;
+    }
+    section.card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 1.15rem 1.25rem 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    section.card h2 {
+      margin: 0 0 .65rem;
+      font-size: 1.15rem;
+      display: flex;
+      gap: .5rem;
+      align-items: center;
+    }
+    section.card h3 {
+      margin: 1rem 0 .35rem;
+      font-size: 1rem;
+      color: var(--warm);
+    }
+    ul { margin: .4rem 0 0; padding-left: 1.15rem; }
+    li { margin: .35rem 0; }
+    .meta {
+      color: var(--muted);
+      font-size: .88rem;
+      margin-top: .55rem;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .tag {
+      display: inline-block;
+      font-size: .72rem;
+      padding: .15rem .45rem;
+      border-radius: 6px;
+      margin-right: .35rem;
+      border: 1px solid var(--line);
+      color: var(--green);
+      vertical-align: middle;
+    }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+    .takeaway {
+      border-color: rgba(110,231,255,.35);
+      background: linear-gradient(135deg, rgba(110,231,255,.1), rgba(255,142,200,.06));
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>💻 Tech Week · AI & Autonomie</h1>
+      <p>Hoogtepunten 6–12 september 2026 · agents, robots, auto’s</p>
+      <div class="pill">Voor AJ · David-style briefing</div>
+    </header>
+
+    <div class="divider">════════════════════</div>
+
+    <section class="card takeaway">
+      <h2>🎯 De rode draad</h2>
+      <p>Niet alleen demos: <strong>agents krijgen productie-API’s</strong>, <strong>robots krijgen gedeelde “brein”-interfaces</strong>, en Europa zet stappen met <strong>driverless rides</strong> — terwijl safety en standaarden harder meelopen.</p>
+    </section>
+
+    <div class="divider">────────────────────</div>
+
+    <section class="card">
+      <h2>🤖 Agents & software</h2>
+
+      <h3><span class="tag">OpenAI</span> Agents API (public beta)</h3>
+      <ul>
+        <li>Hetzelfde harness-denken als Codex: lange runs, context compaction, MCP/tools, parallelle subagents.</li>
+        <li>Sandbox + bestanden/code tussentijds bewaren — agents die uren/dagen kunnen doorwerken.</li>
+        <li>Open-source Codex-harness zichtbaar; OpenAI runt de infra.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://openai.com/index/introducing-the-agents-api/" target="_blank" rel="noopener">openai.com · 10 sep</a></p>
+
+      <h3><span class="tag">Meta</span> Muse (consumer agent)</h3>
+      <ul>
+        <li>Agent in geïsoleerde VM: apps bedienen én betalingen — met goedkeuringsguards.</li>
+        <li>Past in de golf “agents overal”, naast waarschuwingen over zelfverbeterende systemen zonder controleplan.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://trewknowledge.com/2026/09/11/ai-this-week-agents-everywhere-and-the-people-warning-about-them/" target="_blank" rel="noopener">Trew Knowledge · 11 sep</a></p>
+
+      <h3><span class="tag">DevDay</span> 29 september</h3>
+      <ul>
+        <li>Verwacht managed-agents product van OpenAI, in de buurt van Anthropic’s Claude Managed Agents.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>🦾 Fysieke AI & humanoids</h2>
+
+      <h3><span class="tag">DeepMind</span> Gemini Robotics ER 2</h3>
+      <ul>
+        <li>“Brein” bovenop VLA’s: multi-robot orchestratie, ruimtelijke logica, success tracking, tool use (Search/Calendar).</li>
+        <li>Public preview via AI Studio / Gemini API; topscores op embodied-reasoning benchmarks vs. andere frontier models.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://theroboticsmedia.com/article/google-deepmind-gemini-robotics-er-2-embodied-reasoning-multi-robot-orchestration-september-2026" target="_blank" rel="noopener">The Robotics Media</a></p>
+
+      <h3><span class="tag">Berkeley+</span> TANGO op Unitree G1</h3>
+      <ul>
+        <li>Whole-body VLA: 29 DoF joint-space direct uit taal + egocentric RGB — geen 2D path planner.</li>
+        <li>Alleen sim-data (64.633 trajecten); zero-shot op G1 o.a. 14/15 op ~30 m long-horizon.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://aiweekly.co/alerts/berkeleys-tango-ships-29-dof-humanoid-vla-on-unitree-g1" target="_blank" rel="noopener">AI Weekly · 9 sep</a></p>
+
+      <h3><span class="tag">Show-Harness</span> VLM → robot</h3>
+      <ul>
+        <li>Discrete semantic action units; frontier VLM’s zero-shot robots aansturen; kleine open VLM’s met weinig GPU-uren finetunen.</li>
+        <li>GUMI: GUI om demo’s te verzamelen zonder teleop-hardware.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://aiweekly.co/alerts/show-harness-lets-frontier-vlms-drive-robots-zero-shot" target="_blank" rel="noopener">AI Weekly · 10 sep</a></p>
+
+      <h3><span class="tag">NVIDIA</span> Halos for Robotics</h3>
+      <ul>
+        <li>Full-stack safety voor physical AI (IGX Thor, Holoscan, Halos OS + inspection lab) — safety als gedeelde stack i.p.v. ad-hoc app-logica.</li>
+      </ul>
+      <p class="meta">Aangekondigd Automate 2026; bredere industrie-aandacht deze week.</p>
+
+      <h3><span class="tag">Arm</span> Robotics Capability Framework</h3>
+      <ul>
+        <li>Standaard-niveaus à la SAE voor robots (reactief → cognitief/self-improving) + Physical AI design program met 80+ partners.</li>
+      </ul>
+      <p class="meta">Bron: weekoverzicht 8–11 sep (o.a. Trew Knowledge)</p>
+    </section>
+
+    <section class="card">
+      <h2>🚗 Autonome mobiliteit</h2>
+
+      <h3><span class="tag">Zagreb</span> Eerste fully driverless robotaxi in Europa</h3>
+      <ul>
+        <li>Pony.ai + Verne: niemand op de bestuurdersstoel; Uber doet de bookings; Croatische nationale goedkeuring.</li>
+        <li>EU-brede small-series route max ±1.500/jaar — schalen blijft land-voor-land.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://thenextweb.com/news/europes-first-truly-driverless-robotaxi-is-running-in-croatia-on-chinese-software" target="_blank" rel="noopener">The Next Web</a></p>
+
+      <h3><span class="tag">Tesla FSD</span> Supervised in 6 EU-landen</h3>
+      <ul>
+        <li>Slovenië als zesde; TCMV-stemming ±6 okt over EU-brede goedkeuring (drempel: 15 landen + 65% bevolking — nu nog ~9%).</li>
+        <li>Frankrijk test op de weg na gesprek Tabarot–Musk.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://www.techtimes.com/articles/327034/20260908/tesla-full-self-driving-clears-six-eu-nations-speed-offset-fight-could-kill-october-vote.htm" target="_blank" rel="noopener">Tech Times · 8 sep</a></p>
+
+      <h3><span class="tag">Motional</span> nuReasoning dataset</h3>
+      <ul>
+        <li>Open dataset + ECCV-challenge voor long-tail AV-redeneren (planning + VQA); prijzenpot $10k, winnaars NeurIPS-december.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://www.unite.ai/motional-releases-nureasoning-dataset-and-launches-eccv-challenge/" target="_blank" rel="noopener">Unite.AI · 8 sep</a></p>
+    </section>
+
+    <section class="card">
+      <h2>🔌 Standaarden: software ↔ hardware</h2>
+      <h3><span class="tag">Anthropic</span> Model Hardware Standard (preview)</h3>
+      <ul>
+        <li>Gedeelde spec zodat agents lab/fabriek-apparatuur (microscopen, liquid handlers, armen) veilig kunnen aansturen.</li>
+        <li>Partners melden integratie van weken → uren; nog steeds supervisie nodig.</li>
+      </ul>
+      <p class="meta">Bron: <a href="https://www.anthropic.com/news/model-hardware-standard-research-preview" target="_blank" rel="noopener">anthropic.com</a></p>
+    </section>
+
+    <div class="divider">════════════════════</div>
+
+    <section class="card takeaway">
+      <h2>💡 Wat dit voor jou betekent</h2>
+      <ul>
+        <li><strong>Agents:</strong> productiepaden (API’s, managed agents) worden concreet — jouw Grok-routines / Cursor-cloud agents zitten in dezelfde trend.</li>
+        <li><strong>Robots:</strong> race om “brein”-lagen (ER 2, MHS, Show-Harness) i.p.v. alleen motor control.</li>
+        <li><strong>Europa:</strong> Zagreb = mijlpaal; regelgeving blijft de bottleneck voor schaal.</li>
+      </ul>
+    </section>
+
+    <footer>
+      Gegenereerd voor AJ · bronnen gelinkt · check altijd de primary links voor details
+    </footer>
+  </div>
+</body>
+</html>
