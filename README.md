@@ -6,3 +6,7 @@ Vanuit Nederland, met eten, overnachten en praktisch advies.
 🔗 **Live site:** <https://programtjan.github.io/tech-week/>
 
 Elke publish vervangt de vorige site op deze URL.
+
+---
+
+See [AGENTS.md](AGENTS.md) for Cursor cloud-agent conventions.
