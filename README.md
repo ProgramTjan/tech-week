@@ -1,7 +1,6 @@
-# Madeira oktober reisblogs
+# HYPERION-14 | High-NA EUV Wafer & Chip Simulator
 
-Interactieve reisgids voor een week Madeira in oktober — levada's, westkust, Funchal-base.
-Vanuit Nederland, met eten, overnachten en praktisch advies.
+Interactive browser-based simulator for High-NA EUV lithography wafer and chip processes.
 
 🔗 **Live site:** <https://programtjan.github.io/tech-week/>
 
