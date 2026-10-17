@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Madeira 3D: Levada Expeditie</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body { overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+
+  /* HUD & UI */
+  #hud {
+    position: fixed; top: 20px; left: 20px; z-index: 10;
+    display: flex; flex-direction: column; gap: 10px;
+    pointer-events: none;
+  }
+  .hud-card {
+    background: rgba(15, 28, 22, 0.78);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-left: 4px solid #f5b041;
+    padding: 12px 18px;
+    border-radius: 10px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+  }
+  .hud-title { font-size: 18px; font-weight: 800; color: #f5b041; letter-spacing: 0.5px; }
+  .hud-sub { font-size: 13px; color: #d5e8dc; margin-top: 4px; }
+  .progress-bar {
+    width: 240px; height: 10px; background: rgba(255,255,255,0.15);
+    border-radius: 5px; overflow: hidden; margin-top: 8px;
+  }
+  #quest-fill {
+    width: 0%; height: 100%; background: linear-gradient(90deg, #f39c12, #2ecc71);
+    transition: width 0.4s ease;
+  }
+
+  #controls-hint {
+    position: fixed; bottom: 20px; left: 20px; z-index: 10;
+    background: rgba(15, 28, 22, 0.78);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 12px 16px; border-radius: 10px;
+    font-size: 13px; line-height: 1.6; color: #e8f6ef;
+    pointer-events: none;
+  }
+  .key {
+    display: inline-block; background: rgba(255,255,255,0.2);
+    padding: 1px 7px; border-radius: 4px; font-weight: 700; color: #ffd166;
+    margin: 0 2px;
+  }
+
+  #compass-box {
+    position: fixed; top: 20px; right: 20px; z-index: 10;
+    background: rgba(15, 28, 22, 0.78);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 12px 18px; border-radius: 10px;
+    text-align: right; pointer-events: none;
+  }
+
+  #toast {
+    position: fixed; top: 22%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(18, 42, 30, 0.92);
+    border: 2px solid #ffd166;
+    padding: 18px 32px; border-radius: 14px;
+    text-align: center; z-index: 20;
+    opacity: 0; pointer-events: none;
+    transition: all 0.35s ease;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  #toast h2 { color: #ffd166; font-size: 22px; margin-bottom: 6px; }
+  #toast p { color: #fff; font-size: 15px; }
+
+  /* Start Overlay */
+  #overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: radial-gradient(circle at center, rgba(20, 48, 36, 0.85), rgba(5, 15, 12, 0.96));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 20px;
+  }
+  #overlay h1 {
+    font-size: 46px; color: #ffd166; text-shadow: 0 4px 20px rgba(0,0,0,0.7);
+    margin-bottom: 10px;
+  }
+  #overlay p {
+    max-width: 620px; font-size: 17px; line-height: 1.6; color: #d8ece2; margin-bottom: 24px;
+  }
+  #start-btn {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #fff; border: none; padding: 15px 38px;
+    font-size: 20px; font-weight: 800; border-radius: 50px;
+    cursor: pointer; box-shadow: 0 8px 25px rgba(243, 156, 18, 0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  #start-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 12px 30px rgba(243, 156, 18, 0.7); }
+
+  #crosshair {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(0,0,0,0.5);
+    pointer-events: none; z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <h1>MADEIRA 3D: LEVADA EXPEDITIE</h1>
+  <p>
+    Welkom op het virtuele eiland Madeira! Wandel over het steile Levada-pad langs kletterende watervallen en blauwe hortensia's, daal af door de mistige vallei naar de Santana-huisjes en verken de kustboog aan de Atlantische Oceaan.<br><br>
+    <strong>Missie:</strong> Ontdek en verzamel alle <strong>5 Gouden Eiland-bakens</strong> op de iconische plekken uit de afbeelding!
+  </p>
+  <button id="start-btn">START EXPEDITIE</button>
+</div>
+
+<div id="hud">
+  <div class="hud-card">
+    <div class="hud-title">MADEIRA VERKENNER</div>
+    <div class="hud-sub" id="quest-text">Ontdekte plekken: 0 / 5</div>
+    <div class="progress-bar"><div id="quest-fill"></div></div>
+    <div class="hud-sub" id="nearest-hint" style="margin-top:8px; color:#ffd166;">Dichtstbijzijnde baken: -- m</div>
+  </div>
+</div>
+
+<div id="compass-box">
+  <div style="font-size:15px; font-weight:700; color:#5dade2;" id="mode-label">Modus: Wandelaar (3e Persoon)</div>
+  <div style="font-size:13px; color:#cfe7d9; margin-top:4px;" id="coords-label">Hoogte: 42m | Locatie: Levada Pad</div>
+</div>
+
+<div id="controls-hint">
+  <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> of <span class="key">Pijltjes</span> Bewegen &nbsp;|&nbsp;
+  <span class="key">Muis</span> Rondkijken &nbsp;|&nbsp;
+  <span class="key">Spatie</span> Springen / Omhoog &nbsp;|&nbsp;
+  <span class="key">Shift</span> Sprinten<br>
+  <span class="key">V</span> Wissel Wandel / Vrije Drone-vlucht &nbsp;|&nbsp;
+  <span class="key">T</span> Zonnestand (Ochtend / Gouden Uur) &nbsp;|&nbsp;
+  <span class="key">M</span> Geluid Aan/Uit
+</div>
+
+<div id="crosshair"></div>
+<div id="toast"><h2 id="toast-title">Locatie Ontdekt!</h2><p id="toast-desc"></p></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ==========================================
+// 1. BASIS SCENE, CAMERA & RENDERER
+// ==========================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8ec5fc);
+scene.fog = new THREE.FogExp2(0xc7dff0, 0.0022);
+
+const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1200);
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+document.body.appendChild(renderer.domElement);
+
+// ==========================================
+// 2. LICHT & ZONNESTRALEN (GOLDEN HOUR)
+// ==========================================
+const ambientLight = new THREE.HemisphereLight(0xdff0ff, 0x3d5a35, 0.65);
+scene.add(ambientLight);
+
+const sunLight = new THREE.DirectionalLight(0xffe0a3, 1.35);
+sunLight.position.set(-140, 130, -120);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 10;
+sunLight.shadow.camera.far = 500;
+const d = 160;
+sunLight.shadow.camera.left = -d;
+sunLight.shadow.camera.right = d;
+sunLight.shadow.camera.top = d;
+sunLight.shadow.camera.bottom = -d;
+scene.add(sunLight);
+
+// Zichtbare zonnegloed linksboven de bergen (zoals op de afbeelding)
+const sunMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(16, 24, 24),
+  new THREE.MeshBasicMaterial({ color: 0xfff3cc })
+);
+sunMesh.position.copy(sunLight.position).multiplyScalar(2.2);
+scene.add(sunMesh);
+
+// ==========================================
+// 3. WISKUNDIGE HOOGTEKAART VAN MADEIRA
+// ==========================================
+// X-as: van -140 (Steile bergen links) -> -25 (Levada klifpad) -> +20 (Vallei/Santana) -> +75 (Kust & Oceaan)
+// Z-as: van +120 (Voorgrond) naar -220 (Hoge bergtoppen aan de horizon)
+
+function getLevadaPathX(z) {
+  return -28 + Math.sin(z * 0.035) * 6 + Math.cos(z * 0.02) * 3;
+}
+
+function getCoastalRoadX(z) {
+  return 58 + Math.sin(z * 0.04) * 7;
+}
+
+function pseudoNoise(x, z) {
+  return Math.sin(x * 0.045) * Math.cos(z * 0.045) * 6 +
+         Math.sin(x * 0.11 + z * 0.09) * 2.5 +
+         Math.cos(x * 0.23 - z * 0.19) * 0.9;
+}
+
+function getTerrainHeight(x, z) {
+  // 1. Basis profiel van links (hoge klif) naar rechts (oceaan)
+  let h = 0;
+
+  if (x < -34) {
+    // Steile bergwand aan de linkerkant
+    const distLeft = -34 - x;
+    h = 38 + Math.pow(distLeft, 1.15) * 0.95 + pseudoNoise(x, z) * 1.8;
+  } else if (x < 62) {
+    // Van het Levada-pad omlaag de groene vallei in naar de kustklif
+    const t = (x + 34) / 96; // 0 bij levada, 1 bij kust
+    h = 38 * Math.pow(1 - t, 1.45) + 4 + pseudoNoise(x, z);
+
+    // Trapsgewijze landbouwterrassen ('poios') in het midden van de vallei
+    if (x > -10 && x < 35 && z < 40 && z > -120) {
+      h = Math.floor(h / 2.6) * 2.6 + 0.3;
+    }
+  } else {
+    // Kustklif die afloopt in de Atlantische Oceaan
+    const oceanDist = x - 62;
+    h = 5 - oceanDist * 0.55 + Math.sin(z * 0.08) * 1.2;
+  }
+
+  // 2. Dramatische vulkanische bergketen op de achtergrond (z < -40)
+  if (z < -40 && x < 55) {
+    const backFactor = Math.min(1, (-40 - z) / 140);
+    const ridge1 = Math.max(0, 1 - Math.abs(x - (-45 + Math.sin(z * 0.03) * 18)) / 42);
+    const ridge2 = Math.max(0, 1 - Math.abs(x - (10 + Math.cos(z * 0.04) * 20)) / 48);
+    const peaks = (Math.pow(ridge1, 1.6) * 115 + Math.pow(ridge2, 1.7) * 95) * backFactor;
+    h += peaks + Math.abs(pseudoNoise(x * 1.4, z * 1.4)) * backFactor * 4;
+  }
+
+  // 3. Vlak uitgesneden wandelpad voor de Levada (zodat je er heerlijk op kunt lopen)
+  const pathX = getLevadaPathX(z);
+  const distToPath = Math.abs(x - pathX);
+  if (distToPath < 3.4 && z > -110 && z < 110) {
+    const pathHeight = 36.5 + Math.sin(z * 0.02) * 1.8;
+    const blend = Math.max(0, 1 - Math.pow(distToPath / 3.4, 2));
+    h = h * (1 - blend) + pathHeight * blend;
+  }
+
+  // 4. Waterval-geul bij z = 28 (onder het stenen bruggetje door)
+  const gullyDist = Math.abs(z - 28);
+  if (gullyDist < 4.2 && x > -65 && x < -12) {
+    const cut = Math.cos((gullyDist / 4.2) * Math.PI * 0.5);
+    h -= cut * 6.5;
+  }
+
+  // 5. Santana Plateau (voor de driehoekige huisjes rechtsonder in de vallei)
+  const santanaDist = Math.hypot(x - 24, z - 22);
+  if (santanaDist < 12) {
+    const sBlend = Math.max(0, 1 - Math.pow(santanaDist / 12, 2));
+    h = h * (1 - sBlend) + 14.5 * sBlend;
+  }
+
+  // 6. Rotsformatie / Zee-boog in de oceaan (rechts in beeld bij z = -15, x = 86)
+  const seaStackDist = Math.hypot(x - 86, z - (-15));
+  if (seaStackDist < 14) {
+    const rBlend = Math.max(0, 1 - Math.pow(seaStackDist / 14, 2));
+    h = Math.max(h, 13.5 * rBlend + pseudoNoise(x * 2, z * 2) * 0.5);
+  }
+
+  return h;
+}
+
+// ==========================================
+// 4. TERREIN MESH MET VERTEX KLEUREN
+// ==========================================
+const terrainWidth = 300;
+const terrainDepth = 320;
+const terrainGeo = new THREE.PlaneGeometry(terrainWidth, terrainDepth, 220, 220);
+terrainGeo.rotateX(-Math.PI / 2);
+
+const posAttr = terrainGeo.attributes.position;
+const colors = [];
+const c = new THREE.Color();
+
+for (let i = 0; i < posAttr.count; i++) {
+  const vx = posAttr.getX(i);
+  const vz = posAttr.getZ(i);
+  const vy = getTerrainHeight(vx, vz);
+  posAttr.setY(i, vy);
+
+  // Bepaal kleur op basis van hoogte, pad en locatie
+  const pathDist = Math.abs(vx - getLevadaPathX(vz));
+  const roadDist = Math.abs(vx - getCoastalRoadX(vz));
+
+  if (vy < 0.8 && vx > 58) {
+    // Zwart vulkanisch zandstrand van Madeira
+    c.setHex(0x2b2d2f);
+  } else if (pathDist < 1.7 && vz > -105 && vz < 105 && Math.abs(vz - 28) > 3.2) {
+    // Bruin zand/rotsachtig Levada-pad
+    c.setHex(0x7c5c43);
+  } else if (roadDist < 1.8 && vz > -80 && vz < 60 && vy > 2) {
+    // Asfalt kustweggetje
+    c.setHex(0x50555b);
+  } else if (vy > 68) {
+    // Hoge vulkanische rotsen in zonlicht
+    c.setHex(0x6f7364);
+  } else if (vx > -10 && vx < 35 && vz < 40 && vz > -120 && (vy % 2.6 < 0.7)) {
+    // Lichtgroene landbouwterrassen (poios)
+    c.setHex(0x6ea832);
+  } else {
+    // Weelderig Laurisilva bosgroen met subtiele variatie
+    const shade = (Math.sin(vx * 0.15) * Math.cos(vz * 0.15)) * 0.06;
+    c.setHSL(0.28 + shade * 0.2, 0.62, 0.28 + shade);
+  }
+  colors.push(c.r, c.g, c.b);
+}
+
+terrainGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+terrainGeo.computeVertexNormals();
+
+const terrainMat = new THREE.MeshStandardMaterial({
+  vertexColors: true,
+  roughness: 0.88,
+  metalness: 0.05,
+  flatShading: true
+});
+const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
+terrainMesh.receiveShadow = true;
+terrainMesh.castShadow = true;
+scene.add(terrainMesh);
+
+// ==========================================
+// 5. ATLANTISCHE OCEAAN & BRANDING
+// ==========================================
+const oceanGeo = new THREE.PlaneGeometry(240, 340, 90, 90);
+oceanGeo.rotateX(-Math.PI / 2);
+const oceanMat = new THREE.MeshStandardMaterial({
+  color: 0x0d5c91,
+  roughness: 0.2,
+  metalness: 0.4,
+  transparent: true,
+  opacity: 0.92
+});
+const oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
+oceanMesh.position.set(150, 0, -20);
+scene.add(oceanMesh);
+
+// ==========================================
+// 6. BOUWWERKEN & DETAILS UIT DE AFBEELDING
+// ==========================================
+
+// A. Stenen boogbrug op het Levada-pad (bij de waterval z = 28)
+const stoneMat = new THREE.MeshStandardMaterial({ color: 0x7a7872, roughness: 0.9 });
+const bridgeGroup = new THREE.Group();
+const bx = getLevadaPathX(28);
+const by = 36.5 + Math.sin(28 * 0.02) * 1.8;
+
+const bridgeDeck = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.8, 8.5), stoneMat);
+bridgeDeck.position.set(bx, by - 0.3, 28);
+bridgeDeck.castShadow = true;
+bridgeDeck.receiveShadow = true;
+bridgeGroup.add(bridgeDeck);
+
+// Brugleuning links en rechts
+const parapetL = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.9, 8.5), stoneMat);
+parapetL.position.set(bx - 1.6, by + 0.5, 28);
+const parapetR = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.9, 8.5), stoneMat);
+parapetR.position.set(bx + 1.6, by + 0.5, 28);
+bridgeGroup.add(parapetL, parapetR);
+scene.add(bridgeGroup);
+
+// B. Houten/metalen reling langs het Levada-pad
+const railMat = new THREE.MeshStandardMaterial({ color: 0x6e4726, roughness: 0.8 });
+for (let z = -90; z <= 95; z += 3.5) {
+  if (Math.abs(z - 28) < 4.5) continue; // Sla bruggetje over
+  const px = getLevadaPathX(z) + 1.65;
+  const py = getTerrainHeight(px, z);
+
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.3, 6), railMat);
+  post.position.set(px, py + 0.65, z);
+  post.castShadow = true;
+  scene.add(post);
+
+  if (z < 92) {
+    const nextZ = z + 3.5;
+    const nextPx = getLevadaPathX(nextZ) + 1.65;
+    const nextPy = getTerrainHeight(nextPx, nextZ);
+    const dx = nextPx - px, dy = nextPy - py, dz = nextZ - z;
+    const len = Math.hypot(dx, dy, dz);
+
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, len, 6), railMat);
+    bar.position.set((px + nextPx) / 2, (py + nextPy) / 2 + 1.15, (z + nextZ) / 2);
+    bar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(dx, dy, dz).normalize());
+    scene.add(bar);
+  }
+}
+
+// C. De twee iconische driehoekige Santana-huisjes (Casas de Colmo)
+function createSantanaHouse(x, z, rotY) {
+  const group = new THREE.Group();
+  const y = getTerrainHeight(x, z);
+  group.position.set(x, y, z);
+  group.rotation.y = rotY;
+
+  // Witte voor/achtergevel met rode deur en blauwe kozijnen
+  const wallGeo = new THREE.ConeGeometry(2.6, 4.2, 4);
+  wallGeo.rotateY(Math.PI / 4);
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x8c6d3b, roughness: 0.95 }); // Rieten dak
+  const roof = new THREE.Mesh(wallGeo, roofMat);
+  roof.position.y = 2.1;
+  roof.scale.set(1, 1, 1.45);
+  roof.castShadow = true;
+  group.add(roof);
+
+  const frontWall = new THREE.Mesh(
+    new THREE.BoxGeometry(2.2, 1.8, 4.2),
+    new THREE.MeshStandardMaterial({ color: 0xfefefe })
+  );
+  frontWall.position.y = 0.9;
+  group.add(frontWall);
+
+  const door = new THREE.Mesh(
+    new THREE.BoxGeometry(0.7, 1.3, 4.3),
+    new THREE.MeshStandardMaterial({ color: 0xc0392b })
+  );
+  door.position.y = 0.65;
+  group.add(door);
+
+  scene.add(group);
+}
+createSantanaHouse(22.5, 24, 0.4);
+createSantanaHouse(26.5, 18.5, -0.2);
+
+// D. Witte Madeirese dorpshuisjes met terracotta daken op de terrassen
+function createVillageHouse(x, z) {
+  const y = getTerrainHeight(x, z);
+  const hGroup = new THREE.Group();
+  hGroup.position.set(x, y, z);
+  hGroup.rotation.y = Math.random() * Math.PI;
+
+  const base = new THREE.Mesh(
+    new THREE.BoxGeometry(2.2, 1.6, 2.8),
+    new THREE.MeshStandardMaterial({ color: 0xf7f4eb, roughness: 0.8 })
+  );
+  base.position.y = 0.8;
+  base.castShadow = true;
+  hGroup.add(base);
+
+  const roof = new THREE.Mesh(
+    new THREE.ConeGeometry(2.1, 1.2, 4),
+    new THREE.MeshStandardMaterial({ color: 0xc85a32, roughness: 0.7 })
+  );
+  roof.position.y = 2.2;
+  roof.rotation.y = Math.PI / 4;
+  hGroup.add(roof);
+
+  scene.add(hGroup);
+}
+const villageCoords = [
+  [12, -15], [16, -18], [9, -22], [19, -12], [14, -27],
+  [-4, -55], [1, -60], [-6, -64], [4, -52], [0, -68], [28, -8]
+];
+villageCoords.forEach(([vx, vz]) => createVillageHouse(vx, vz));
+
+// E. Kustboog & Brug naar de Rotsformatie in Zee (Rechts in beeld)
+const coastalBridge = new THREE.Mesh(new THREE.BoxGeometry(24, 1.4, 3.2), stoneMat);
+coastalBridge.position.set(74, 12.2, -15);
+coastalBridge.castShadow = true;
+scene.add(coastalBridge);
+
+const archPillar1 = new THREE.Mesh(new THREE.BoxGeometry(4, 14, 4), stoneMat);
+archPillar1.position.set(65, 5.5, -15);
+const archPillar2 = new THREE.Mesh(new THREE.BoxGeometry(5, 14, 5), stoneMat);
+archPillar2.position.set(81, 5.5, -15);
+scene.add(archPillar1, archPillar2);
+
+// ==========================================
+// 7. FLORA: HORTENSIA'S, AGAPANTHUS & BOMEN
+// ==========================================
+// Blauwe en paarse hortensia-struiken langs het Levada-pad
+const flowerMatBlue = new THREE.MeshStandardMaterial({ color: 0x4a78e6, roughness: 0.6 });
+const flowerMatPurple = new THREE.MeshStandardMaterial({ color: 0x8854d0, roughness: 0.6 });
+const bushLeafMat = new THREE.MeshStandardMaterial({ color: 0x1e5622, roughness: 0.8 });
+
+function createHydrangeaCluster(x, z) {
+  const y = getTerrainHeight(x, z);
+  const group = new THREE.Group();
+  group.position.set(x, y, z);
+
+  const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65, 1), bushLeafMat);
+  bush.position.y = 0.4;
+  bush.scale.set(1.2, 0.8, 1.2);
+  group.add(bush);
+
+  for (let i = 0; i < 6; i++) {
+    const isBlue = Math.random() > 0.35;
+    const bloom = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.22, 1),
+      isBlue ? flowerMatBlue : flowerMatPurple
+    );
+    const angle = (i / 6) * Math.PI * 2;
+    bloom.position.set(Math.cos(angle) * 0.45, 0.65 + Math.random() * 0.25, Math.sin(angle) * 0.45);
+    group.add(bloom);
+  }
+  scene.add(group);
+}
+
+for (let z = -60; z < 90; z += 2.8) {
+  if (Math.abs(z - 28) < 4) continue;
+  const px = getLevadaPathX(z);
+  // Bloemen zowel links tegen de klif als rechts bij het hek
+  if (Math.random() > 0.25) createHydrangeaCluster(px - 1.5 - Math.random() * 0.8, z);
+  if (Math.random() > 0.35) createHydrangeaCluster(px + 1.4 + Math.random() * 0.5, z + 1.1);
+}
+
+// Laurisilva Bomen verspreid over de hellingen
+const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4d3624, roughness: 0.9 });
+const canopyMat1 = new THREE.MeshStandardMaterial({ color: 0x265c28, roughness: 0.8, flatShading: true });
+const canopyMat2 = new THREE.MeshStandardMaterial({ color: 0x357530, roughness: 0.8, flatShading: true });
+
+for (let i = 0; i < 240; i++) {
+  const tx = -95 + Math.random() * 145;
+  const tz = -150 + Math.random() * 230;
+  if (Math.abs(tx - getLevadaPathX(tz)) < 4.5) continue;
+  const ty = getTerrainHeight(tx, tz);
+  if (ty < 4 || ty > 65) continue;
+
+  const tree = new THREE.Group();
+  tree.position.set(tx, ty, tz);
+  const scale = 0.7 + Math.random() * 1.1;
+  tree.scale.set(scale, scale, scale);
+
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.35, 1.8, 6), trunkMat);
+  trunk.position.y = 0.9;
+  tree.add(trunk);
+
+  const foliage = new THREE.Mesh(
+    new THREE.DodecahedronGeometry(1.6, 1),
+    Math.random() > 0.5 ? canopyMat1 : canopyMat2
+  );
+  foliage.position.y = 2.3;
+  foliage.scale.set(1.2, 0.9, 1.2);
+  foliage.castShadow = true;
+  tree.add(foliage);
+
+  scene.add(tree);
+}
+
+// ==========================================
+// 8. DYNAMISCHE WATERVAL & VALLEI-MIST
+// ==========================================
+// Waterval deeltjes die van de linker klif onder de stenen brug door naar beneden storten
+const wfCount = 450;
+const wfGeo = new THREE.BufferGeometry();
+const wfPos = new Float32Array(wfCount * 3);
+const wfVel = [];
+
+function resetWaterfallParticle(i) {
+  const t = Math.random();
+  const x = -54 + t * 38;
+  const baseH = getTerrainHeight(x, 28);
+  wfPos[i * 3] = x;
+  wfPos[i * 3 + 1] = baseH + 0.6 + Math.random() * 1.5;
+  wfPos[i * 3 + 2] = 28 + (Math.random() - 0.5) * 2.4;
+}
+
+for (let i = 0; i < wfCount; i++) {
+  resetWaterfallParticle(i);
+  wfVel.push(0.18 + Math.random() * 0.14);
+}
+wfGeo.setAttribute('position', new THREE.BufferAttribute(wfPos, 3));
+const wfMat = new THREE.PointsMaterial({ color: 0xe0f7ff, size: 0.75, transparent: true, opacity: 0.85 });
+const waterfallPoints = new THREE.Points(wfGeo, wfMat);
+scene.add(waterfallPoints);
+
+// Zwevende mistwolken in de vallei en rond de bergtoppen
+const clouds = [];
+const cloudMat = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0.42,
+  roughness: 1,
+  depthWrite: false
+});
+
+for (let i = 0; i < 28; i++) {
+  const cGroup = new THREE.Group();
+  const puffs = 3 + Math.floor(Math.random() * 4);
+  for (let p = 0; p < puffs; p++) {
+    const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(6 + Math.random() * 6, 1), cloudMat);
+    puff.position.set((p - 1.5) * 5, Math.random() * 2, (Math.random() - 0.5) * 4);
+    puff.scale.set(1.5, 0.55, 1.2);
+    cGroup.add(puff);
+  }
+  cGroup.position.set(-20 + Math.random() * 55, 22 + Math.random() * 28, -140 + Math.random() * 190);
+  scene.add(cGroup);
+  clouds.push({ mesh: cGroup, speed: 0.02 + Math.random() * 0.03 });
+}
+
+// ==========================================
+// 9. SPELER KARAKTER (DE WANDELAAR MET RUGZAK)
+// ==========================================
+const player = new THREE.Group();
+const startZ = 48;
+const startX = getLevadaPathX(startZ);
+player.position.set(startX, getTerrainHeight(startX, startZ), startZ);
+scene.add(player);
+
+// Lichaam, Hoofd, Rugzak, Armen en Benen (zoals de wandelaar op de foto)
+const shirtMat = new THREE.MeshStandardMaterial({ color: 0x2e6b8e }); // Blauw wandershirt
+const shortsMat = new THREE.MeshStandardMaterial({ color: 0x5b5847 }); // Korte wandelschoenen/broek
+const skinMat = new THREE.MeshStandardMaterial({ color: 0xe0ac8b });
+const packMat = new THREE.MeshStandardMaterial({ color: 0x1c2833 }); // Donkere backpack
+const hairMat = new THREE.MeshStandardMaterial({ color: 0x3b2618 });
+
+const torso = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.85, 0.35), shirtMat);
+torso.position.y = 1.25;
+torso.castShadow = true;
+player.add(torso);
+
+const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.72, 0.32), packMat);
+backpack.position.set(0, 1.3, 0.28);
+backpack.castShadow = true;
+player.add(backpack);
+
+const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.42, 0.4), skinMat);
+head.position.y = 1.92;
+player.add(head);
+
+const hair = new THREE.Mesh(new THREE.BoxGeometry(0.43, 0.18, 0.43), hairMat);
+hair.position.y = 2.08;
+player.add(hair);
+
+const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.8, 0.24), shortsMat);
+leftLeg.position.set(-0.17, 0.4, 0);
+const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.8, 0.24), shortsMat);
+rightLeg.position.set(0.17, 0.4, 0);
+player.add(leftLeg, rightLeg);
+
+const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.72, 0.2), skinMat);
+leftArm.position.set(-0.45, 1.22, 0);
+const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.72, 0.2), skinMat);
+rightArm.position.set(0.45, 1.22, 0);
+player.add(leftArm, rightArm);
+
+// ==========================================
+// 10. MISSIE: 5 BEZIENSWAARDIGHEDEN (BAKENS)
+// ==========================================
+const landmarks = [
+  {
+    name: "De Levada Waterval & Stenen Brug",
+    desc: "Het kristalheldere bergwater stort hier onder de oude stenen boogbrug door de vallei in!",
+    x: getLevadaPathX(28), z: 28
+  },
+  {
+    name: "Het Blauwe Hortensia Uitkijkpunt",
+    desc: "Vanaf deze klif heb je het exacte panoramische uitzicht over heel Madeira!",
+    x: getLevadaPathX(8), z: 8
+  },
+  {
+    name: "De Traditionele Santana-Huisjes",
+    desc: "De beroemde driehoekige 'Casas de Colmo' met hun rieten daken op het groene plateau.",
+    x: 24, z: 21
+  },
+  {
+    name: "De Groene Poios-Terrasvallei",
+    desc: "Eeuwenoude trapsgewijze landbouwterrassen omringd door de nevel van het Laurisilva-bos.",
+    x: 13, z: -19
+  },
+  {
+    name: "De Atlantische Rotsboog",
+    desc: "Waar de vulkanische kliffen en de spectaculaire kustbrug de Atlantische Oceaan ontmoeten!",
+    x: 78, z: -15
+  }
+];
+
+const beaconMeshes = [];
+let collectedCount = 0;
+
+landmarks.forEach((lm, idx) => {
+  lm.y = getTerrainHeight(lm.x, lm.z);
+  lm.collected = false;
+
+  const group = new THREE.Group();
+  group.position.set(lm.x, lm.y + 1.6, lm.z);
+
+  const crystal = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.85, 0),
+    new THREE.MeshStandardMaterial({
+      color: 0xffd166,
+      emissive: 0xf39c12,
+      emissiveIntensity: 0.7,
+      roughness: 0.2,
+      metalness: 0.8
+    })
+  );
+  group.add(crystal);
+
+  // Lichtring op de grond
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(1.1, 1.45, 24),
+    new THREE.MeshBasicMaterial({ color: 0xffd166, side: THREE.DoubleSide })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = -1.45;
+  group.add(ring);
+
+  scene.add(group);
+  beaconMeshes.push({ group, crystal, data: lm });
+});
+
+function showToast(title, desc) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-desc').textContent = desc;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4500);
+}
+
+// ==========================================
+// 11. BESTURING, CAMERA & FYSICA
+// ==========================================
+const keys = {};
+let yaw = Math.PI; // Kijk richting het noorden (het pad af richting de bergen)
+let pitch = 0.12;
+let velocityY = 0;
+let isGrounded = true;
+let flyMode = false;
+let goldenHour = true;
+
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  if (e.code === 'KeyV') {
+    flyMode = !flyMode;
+    velocityY = 0;
+    document.getElementById('mode-label').textContent = flyMode
+      ? "Modus: Vrije Drone-Vlucht (Spatie/C voor Hoogte)"
+      : "Modus: Wandelaar (3e Persoon)";
+    player.visible = !flyMode;
+  }
+  if (e.code === 'KeyT') {
+    goldenHour = !goldenHour;
+    if (goldenHour) {
+      sunLight.color.setHex(0xffe0a3);
+      sunLight.position.set(-140, 130, -120);
+      scene.background.setHex(0x8ec5fc);
+      scene.fog.color.setHex(0xc7dff0);
+    } else {
+      sunLight.color.setHex(0xff9a52);
+      sunLight.position.set(-160, 55, -140);
+      scene.background.setHex(0xe89b7e);
+      scene.fog.color.setHex(0xe0a98b);
+    }
+  }
+  if (e.code === 'KeyM') toggleAudio();
+});
+
+window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+// Pointer Lock voor soepel rondkijken met de muis
+const overlay = document.getElementById('overlay');
+document.getElementById('start-btn').addEventListener('click', () => {
+  overlay.style.display = 'none';
+  document.body.requestPointerLock();
+  initAudio();
+});
+
+document.addEventListener('click', () => {
+  if (overlay.style.display === 'none' && document.pointerLockElement !== document.body) {
+    document.body.requestPointerLock();
+  }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (document.pointerLockElement === document.body) {
+    yaw -= e.movementX * 0.0024;
+    pitch = Math.max(-Math.PI / 2.4, Math.min(Math.PI / 2.4, pitch + e.movementY * 0.0022));
+  }
+});
+
+// ==========================================
+// 12. PROCEDUREEL NATUURGELUID (WEB AUDIO API)
+// ==========================================
+let audioCtx = null;
+let masterGain = null;
+let isMuted = false;
+
+function initAudio() {
+  if (audioCtx) return;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  audioCtx = new AudioContext();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.25;
+  masterGain.connect(audioCtx.destination);
+
+  // Ruisgenerator voor waterval & oceaangolven
+  const bufferSize = audioCtx.sampleRate * 3;
+  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const output = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    output[i] = Math.random() * 2 - 1;
+  }
+
+  const whiteNoise = audioCtx.createBufferSource();
+  whiteNoise.buffer = noiseBuffer;
+  whiteNoise.loop = true;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 550;
+
+  whiteNoise.connect(filter);
+  filter.connect(masterGain);
+  whiteNoise.start(0);
+}
+
+function playChime() {
+  if (!audioCtx || isMuted) return;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+  osc.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.35); // C6
+  g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+  osc.connect(g);
+  g.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.8);
+}
+
+function toggleAudio() {
+  if (!masterGain) return;
+  isMuted = !isMuted;
+  masterGain.gain.value = isMuted ? 0 : 0.25;
+}
+
+// ==========================================
+// 13. GAME LOOP & ANIMATIES
+// ==========================================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.1);
+  const elapsed = clock.getElapsedTime();
+
+  // 1. Speler Beweging
+  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)).normalize();
+  const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw)).normalize();
+  const moveDir = new THREE.Vector3();
+
+  if (keys['KeyW'] || keys['ArrowUp']) moveDir.add(forward);
+  if (keys['KeyS'] || keys['ArrowDown']) moveDir.sub(forward);
+  if (keys['KeyD'] || keys['ArrowRight']) moveDir.add(right);
+  if (keys['KeyA'] || keys['ArrowLeft']) moveDir.sub(right);
+
+  const isMoving = moveDir.lengthSq() > 0;
+  if (isMoving) moveDir.normalize();
+
+  const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
+  const baseSpeed = flyMode ? (isSprinting ? 48 : 24) : (isSprinting ? 14 : 7.5);
+
+  player.position.x += moveDir.x * baseSpeed * dt;
+  player.position.z += moveDir.z * baseSpeed * dt;
+
+  // Begrens binnen het eiland
+  player.position.x = Math.max(-125, Math.min(130, player.position.x));
+  player.position.z = Math.max(-165, Math.min(125, player.position.z));
+
+  const groundH = Math.max(0, getTerrainHeight(player.position.x, player.position.z));
+
+  if (flyMode) {
+    if (keys['Space']) player.position.y += 22 * dt;
+    if (keys['KeyC'] || keys['ControlLeft']) player.position.y -= 22 * dt;
+    player.position.y = Math.max(groundH + 1.5, player.position.y);
+  } else {
+    // Zwaartekracht & Springen
+    if (keys['Space'] && isGrounded) {
+      velocityY = 10.5;
+      isGrounded = false;
+    }
+    velocityY -= 24 * dt;
+    player.position.y += velocityY * dt;
+
+    if (player.position.y <= groundH) {
+      player.position.y = groundH;
+      velocityY = 0;
+      isGrounded = true;
+    }
+  }
+
+  // Draai het wandel-karakter in de looprichting en animeer armen/benen
+  if (isMoving && !flyMode) {
+    const targetRot = Math.atan2(moveDir.x, moveDir.z);
+    player.rotation.y = targetRot;
+    const walkCycle = elapsed * (isSprinting ? 14 : 9);
+    leftLeg.rotation.x = Math.sin(walkCycle) * 0.65;
+    rightLeg.rotation.x = -Math.sin(walkCycle) * 0.65;
+    leftArm.rotation.x = -Math.sin(walkCycle) * 0.5;
+    rightArm.rotation.x = Math.sin(walkCycle) * 0.5;
+  } else {
+    leftLeg.rotation.x = 0;
+    rightLeg.rotation.x = 0;
+    leftArm.rotation.x = 0;
+    rightArm.rotation.x = 0;
+  }
+
+  // 2. Camera Volgen (3e persoon achter de wandelaar of 1e persoon in drone-modus)
+  if (flyMode) {
+    camera.position.copy(player.position);
+    const lookTarget = new THREE.Vector3(
+      player.position.x - Math.sin(yaw) * Math.cos(pitch) * 10,
+      player.position.y - Math.sin(pitch) * 10,
+      player.position.z - Math.cos(yaw) * Math.cos(pitch) * 10
+    );
+    camera.lookAt(lookTarget);
+  } else {
+    const camDist = 6.2;
+    const camX = player.position.x + Math.sin(yaw) * Math.cos(pitch) * camDist;
+    const camZ = player.position.z + Math.cos(yaw) * Math.cos(pitch) * camDist;
+    const camY = player.position.y + 2.2 + Math.sin(pitch) * camDist;
+    const terrainCamH = getTerrainHeight(camX, camZ) + 0.8;
+    camera.position.set(camX, Math.max(camY, terrainCamH), camZ);
+    camera.lookAt(player.position.x, player.position.y + 1.7, player.position.z);
+  }
+
+  // 3. Animeer Waterval
+  const wfAttr = waterfallPoints.geometry.attributes.position;
+  for (let i = 0; i < wfCount; i++) {
+    let x = wfAttr.getX(i) + wfVel[i];
+    let z = wfAttr.getZ(i);
+    if (x > -14) {
+      resetWaterfallParticle(i);
+    } else {
+      const h = getTerrainHeight(x, z);
+      wfAttr.setXYZ(i, x, h + 0.5 + Math.random() * 0.6, z);
+    }
+  }
+  wfAttr.needsUpdate = true;
+
+  // 4. Animeer Mistwolken en Oceaan
+  clouds.forEach((c) => {
+    c.mesh.position.z += c.speed;
+    if (c.mesh.position.z > 80) c.mesh.position.z = -150;
+  });
+  oceanMesh.position.y = Math.sin(elapsed * 1.6) * 0.35;
+
+  // 5. Check Missie-Bakens (Collectibles)
+  let minDistance = Infinity;
+  let nearestName = "";
+
+  beaconMeshes.forEach((b) => {
+    if (b.data.collected) return;
+    b.crystal.rotation.y += 1.8 * dt;
+    b.group.position.y = b.data.y + 1.6 + Math.sin(elapsed * 3) * 0.3;
+
+    const dist = player.position.distanceTo(b.group.position);
+    if (dist < minDistance) {
+      minDistance = dist;
+      nearestName = b.data.name;
+    }
+
+    if (dist < 4.2) {
+      b.data.collected = true;
+      b.group.visible = false;
+      collectedCount++;
+      playChime();
+
+      document.getElementById('quest-text').textContent = `Ontdekte plekken: ${collectedCount} / 5`;
+      document.getElementById('quest-fill').style.width = `${(collectedCount / 5) * 100}%`;
+
+      if (collectedCount === 5) {
+        showToast("EXPEDITIE VOLTOOID! 🏆", "Eindbaas! Je hebt heel Madeira verkend. Schakel met 'V' naar de Drone-modus om vrij over het eiland te vliegen!");
+      } else {
+        showToast(`Ontdekt: ${b.data.name}`, b.data.desc);
+      }
+    }
+  });
+
+  // Update HUD informatie
+  const hintEl = document.getElementById('nearest-hint');
+  if (collectedCount < 5) {
+    hintEl.textContent = `Dichtstbijzijnde baken: ${nearestName} (${Math.round(minDistance)}m)`;
+  } else {
+    hintEl.textContent = "Alle 5 herkenningspunten ontdekt! Geniet van het uitzicht!";
+  }
+
+  let zoneName = "Groene Vallei";
+  if (player.position.x < -18) zoneName = "Levada Klifpad";
+  else if (player.position.x > 55) zoneName = "Atlantische Kust & Boog";
+  else if (Math.hypot(player.position.x - 24, player.position.z - 21) < 16) zoneName = "Santana Plateau";
+  document.getElementById('coords-label').textContent = `Hoogte: ${Math.round(player.position.y)}m | Locatie: ${zoneName}`;
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>
