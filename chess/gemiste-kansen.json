@@ -1,0 +1,50 @@
+[
+  {
+    "id": "116vYTNs-16w",
+    "gameUrl": "https://lichess.org/116vYTNs#31",
+    "date": "2026-10-29",
+    "opponent": "PopsInABox",
+    "color": "white",
+    "moveNumber": 16,
+    "fen": "r1b2rk1/2qn1ppp/1pp1pn2/p5B1/8/P1N2B2/1PP1QPPP/R3R1K1 w - - 0 16",
+    "sideToMove": "w",
+    "bestMove": "Nb5",
+    "playedMove": "Rad1",
+    "evalBefore": 2.32,
+    "evalAfterPlayed": 0.0,
+    "theme": "overbelasting",
+    "uitleg": "Na 16.Nb5! staat de dame op c7 in de tang: de c6-pion is overbelast omdat hij zowel b5 als de lange diagonaal moet bewaken. Op 16...cxb5 volgt 17.Bxa8 en wit wint kwaliteit."
+  },
+  {
+    "id": "116vYTNs-21w",
+    "gameUrl": "https://lichess.org/116vYTNs#41",
+    "date": "2026-10-29",
+    "opponent": "PopsInABox",
+    "color": "white",
+    "moveNumber": 21,
+    "fen": "4rrk1/2qn2pp/bpp1pp2/p7/4N3/P3nB2/1PPQ1PPP/3RR1K1 w - - 0 21",
+    "sideToMove": "w",
+    "bestMove": "Qxd7",
+    "playedMove": "Rxe3",
+    "evalBefore": -0.21,
+    "evalAfterPlayed": -1.41,
+    "theme": "tussenzet",
+    "uitleg": "Niet meteen 21.Rxe3, maar eerst de tussenzet 21.Qxd7! Wit wint eerst het ongedekte paard op d7 en pakt daarna alsnog het paard op e3."
+  },
+  {
+    "id": "HSxAxgsP-14w",
+    "gameUrl": "https://lichess.org/HSxAxgsP#27",
+    "date": "2026-10-24",
+    "opponent": "Orgi73",
+    "color": "white",
+    "moveNumber": 14,
+    "fen": "r4rk1/1bqnppbp/p1pp2p1/8/4P3/P1N1BP2/BPP3PP/R2Q1RK1 w - - 1 14",
+    "sideToMove": "w",
+    "bestMove": "Qd2",
+    "playedMove": "b4",
+    "evalBefore": -0.25,
+    "evalAfterPlayed": -5.05,
+    "theme": "eigen zet laat iets open",
+    "uitleg": "Na 14.b4? kan zwart met 14...Bxc3 de ongedekte toren op a1 via de geopende diagonaal aanvallen. Met 14.Qd2 bleef de stelling in evenwicht."
+  }
+]

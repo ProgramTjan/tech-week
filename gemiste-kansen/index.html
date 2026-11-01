@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gemiste Kansen – Tjan86</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:12px;background:#f6f3ee;color:#222;-webkit-text-size-adjust:100%}
+h1{font-size:1.4em;margin-bottom:4px}
+.intro{font-size:.92em;color:#555;margin-bottom:14px;line-height:1.45}
+
+.status-bar{display:flex;justify-content:space-between;align-items:center;font-size:.85em;color:#555;margin-bottom:10px;padding:0 2px}
+.score{font-weight:600;color:#1a7f37}
+
+.board-wrap{position:relative;width:100%;max-width:400px;margin:0 auto 10px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border-radius:4px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.18);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+
+.sq{position:relative;display:flex;align-items:center;justify-content:center;font-size:min(10vw,42px);line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s}
+.sq.light{background:#f0d9b5}
+.sq.dark{background:#b58863}
+.sq.selected{background:#e8e03a!important}
+.sq.hint-from{background:rgba(100,200,80,.55)!important}
+.sq.hint-to{background:rgba(100,200,80,.65)!important}
+.sq.wrong-flash{animation:wrongFlash .4s}
+@keyframes wrongFlash{0%,100%{background:inherit}50%{background:#e5534b}}
+
+.sq .coord{position:absolute;font-size:.32em;font-weight:700;line-height:1;pointer-events:none}
+.sq .coord-file{bottom:2px;right:3px}
+.sq .coord-rank{top:2px;left:3px}
+.sq.light .coord{color:#b58863}
+.sq.dark .coord{color:#f0d9b5}
+
+.game-info{text-align:center;font-size:.82em;color:#666;margin-bottom:6px}
+.theme-tag{display:inline-block;background:#eee;border-radius:10px;padding:2px 10px;font-size:.78em;font-weight:600;color:#555;margin-bottom:8px}
+
+.prompt{text-align:center;font-size:1.05em;font-weight:600;margin-bottom:10px}
+
+.feedback{text-align:center;min-height:28px;font-size:.95em;font-weight:600;margin-bottom:8px;transition:opacity .2s}
+.feedback.correct{color:#1a7f37}
+.feedback.wrong{color:#cf222e}
+
+.controls{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
+.btn{background:#fff;color:#222;border:1.5px solid #ccc;border-radius:8px;padding:10px 20px;font-size:.9em;font-weight:600;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:#1a7f37;color:#fff;border-color:#1a7f37}
+.btn-primary:active{background:#15692d}
+.btn:disabled{opacity:.45;cursor:default}
+
+.uitleg-box{background:#fff;border-radius:10px;padding:14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #1a7f37;display:none}
+.uitleg-box.revealed{border-left-color:#d4a017}
+.uitleg-box h3{font-size:.95em;margin-bottom:6px}
+.uitleg-box p{font-size:.88em;line-height:1.5;color:#333;margin-bottom:6px}
+.uitleg-box .eval-change{font-size:.82em;color:#888}
+.uitleg-box a{color:#0b5cad}
+
+.done-box{text-align:center;background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:14px}
+.done-box h2{font-size:1.15em;margin-bottom:8px}
+.done-box p{font-size:.9em;color:#555}
+.done-box .btn{margin-top:12px}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<h1>♟️ Gemiste Kansen</h1>
+<p class="intro">Vind de beste zet in posities uit je eigen partijen op Lichess.</p>
+
+<div class="status-bar">
+  <span id="puzzle-num">Puzzel 1/3</span>
+  <span class="score" id="score-display">0/3 opgelost</span>
+</div>
+
+<div class="board-wrap">
+  <div class="board" id="board"></div>
+</div>
+
+<div id="game-info" class="game-info"></div>
+<div id="theme-display" style="text-align:center"></div>
+<div id="prompt" class="prompt">Wat had je hier moeten spelen?</div>
+<div id="feedback" class="feedback"></div>
+
+<div class="controls" id="controls">
+  <button class="btn" id="btn-reveal" onclick="revealAnswer()">Laat zien</button>
+  <button class="btn btn-primary hidden" id="btn-next" onclick="nextPuzzle()">Volgende →</button>
+  <button class="btn btn-primary hidden" id="btn-shuffle" onclick="shuffleAndRestart()">Opnieuw schudden</button>
+</div>
+
+<div class="uitleg-box" id="uitleg-box">
+  <h3 id="uitleg-title"></h3>
+  <p id="uitleg-text"></p>
+  <p class="eval-change" id="uitleg-eval"></p>
+  <p><a id="uitleg-link" href="#" target="_blank" rel="noopener">Bekijk deze zet op Lichess →</a></p>
+</div>
+
+<script>
+var PIECES = {
+  K:'\u2654',Q:'\u2655',R:'\u2656',B:'\u2657',N:'\u2658',P:'\u2659',
+  k:'\u265A',q:'\u265B',r:'\u265C',b:'\u265D',n:'\u265E',p:'\u265F'
+};
+
+var puzzles = [];
+var order = [];
+var currentIdx = 0;
+var selectedSq = null;
+var state = 'playing';
+var solved;
+
+try { solved = new Set(JSON.parse(localStorage.getItem('gk-solved') || '[]')); }
+catch(e) { solved = new Set(); }
+
+function parseFEN(fen) {
+  var rows = fen.split(' ')[0].split('/');
+  var board = [];
+  for (var i = 0; i < rows.length; i++) {
+    var row = [];
+    for (var j = 0; j < rows[i].length; j++) {
+      var ch = rows[i][j];
+      if (ch >= '1' && ch <= '8') { for (var k = 0; k < parseInt(ch); k++) row.push(''); }
+      else row.push(ch);
+    }
+    board.push(row);
+  }
+  return board;
+}
+
+function findBestMoveSquares(fen, san) {
+  san = san.replace(/[+#!?]/g, '').replace(/=[NBRQ]/, '');
+  if (san === 'O-O') { var rk = fen.split(' ')[1] === 'w' ? '1' : '8'; return {from:'e'+rk,to:'g'+rk}; }
+  if (san === 'O-O-O') { var rk2 = fen.split(' ')[1] === 'w' ? '1' : '8'; return {from:'e'+rk2,to:'c'+rk2}; }
+
+  var board = parseFEN(fen);
+  var turn = fen.split(' ')[1];
+  var pieceType, disambig, destSq;
+
+  if (san[0] >= 'A' && san[0] <= 'Z') { pieceType = san[0]; san = san.substring(1); }
+  else pieceType = 'P';
+
+  san = san.replace('x', '');
+  destSq = san.slice(-2);
+  disambig = san.slice(0, -2);
+
+  var fenChar = turn === 'w' ? pieceType : pieceType.toLowerCase();
+  var candidates = [];
+  for (var r = 0; r < 8; r++) {
+    for (var c = 0; c < 8; c++) {
+      if (board[r][c] !== fenChar) continue;
+      var file = String.fromCharCode(97 + c);
+      var rank = String(8 - r);
+      if (disambig.length === 1) {
+        if (disambig >= 'a' && disambig <= 'h' && file !== disambig) continue;
+        if (disambig >= '1' && disambig <= '8' && rank !== disambig) continue;
+      } else if (disambig.length === 2) {
+        if (file !== disambig[0] || rank !== disambig[1]) continue;
+      }
+      candidates.push(file + rank);
+    }
+  }
+  if (candidates.length === 1) return {from:candidates[0], to:destSq};
+  for (var i = 0; i < candidates.length; i++) {
+    if (canReach(pieceType, candidates[i], destSq)) return {from:candidates[i], to:destSq};
+  }
+  return candidates.length ? {from:candidates[0], to:destSq} : null;
+}
+
+function canReach(pt, from, to) {
+  var df = Math.abs(to.charCodeAt(0) - from.charCodeAt(0));
+  var dr = Math.abs(parseInt(to[1]) - parseInt(from[1]));
+  switch(pt) {
+    case 'N': return df * dr === 2;
+    case 'B': return df === dr && df > 0;
+    case 'R': return (df === 0 || dr === 0) && (df + dr > 0);
+    case 'Q': return (df === dr || df === 0 || dr === 0) && (df + dr > 0);
+    case 'K': return df <= 1 && dr <= 1 && (df + dr > 0);
+    default: return true;
+  }
+}
+
+function isOwnPiece(piece, side) {
+  if (!piece) return false;
+  return side === 'w' ? piece === piece.toUpperCase() : piece === piece.toLowerCase();
+}
+
+function renderBoard(puzzle) {
+  var board = parseFEN(puzzle.fen);
+  var flipped = puzzle.color === 'black';
+  var el = document.getElementById('board');
+  el.innerHTML = '';
+
+  for (var row = 0; row < 8; row++) {
+    for (var col = 0; col < 8; col++) {
+      var r = flipped ? 7 - row : row;
+      var c = flipped ? 7 - col : col;
+      var file = c;
+      var rank = 7 - r;
+      var sqName = String.fromCharCode(97 + file) + (rank + 1);
+
+      var sq = document.createElement('div');
+      sq.className = 'sq ' + ((file + rank) % 2 !== 0 ? 'light' : 'dark');
+      sq.dataset.sq = sqName;
+
+      var piece = board[r][c];
+      if (piece) sq.textContent = PIECES[piece];
+      sq.dataset.piece = piece || '';
+
+      if (row === 7) {
+        var cf = document.createElement('span');
+        cf.className = 'coord coord-file';
+        cf.textContent = sqName[0];
+        sq.appendChild(cf);
+      }
+      if (col === 0) {
+        var cr = document.createElement('span');
+        cr.className = 'coord coord-rank';
+        cr.textContent = sqName[1];
+        sq.appendChild(cr);
+      }
+
+      sq.addEventListener('click', (function(name, pc) {
+        return function() { handleClick(name, pc); };
+      })(sqName, piece));
+
+      el.appendChild(sq);
+    }
+  }
+}
+
+function highlightSq(name, cls) {
+  var el = document.querySelector('[data-sq="' + name + '"]');
+  if (el) el.classList.add(cls);
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.sq.selected,.sq.hint-from,.sq.hint-to,.sq.wrong-flash').forEach(function(el) {
+    el.classList.remove('selected', 'hint-from', 'hint-to', 'wrong-flash');
+  });
+}
+
+function handleClick(sqName, piece) {
+  if (state !== 'playing') return;
+  var puzzle = puzzles[order[currentIdx]];
+
+  if (!selectedSq) {
+    if (isOwnPiece(piece, puzzle.sideToMove)) {
+      selectedSq = sqName;
+      highlightSq(sqName, 'selected');
+    }
+    return;
+  }
+
+  if (sqName === selectedSq) {
+    selectedSq = null;
+    clearHighlights();
+    return;
+  }
+
+  if (isOwnPiece(piece, puzzle.sideToMove)) {
+    clearHighlights();
+    selectedSq = sqName;
+    highlightSq(sqName, 'selected');
+    return;
+  }
+
+  var from = selectedSq;
+  selectedSq = null;
+  clearHighlights();
+
+  var best = findBestMoveSquares(puzzle.fen, puzzle.bestMove);
+  if (best && from === best.from && sqName === best.to) {
+    onCorrect(puzzle, best);
+  } else {
+    onWrong();
+  }
+}
+
+function onCorrect(puzzle, best) {
+  state = 'correct';
+  highlightSq(best.from, 'hint-from');
+  highlightSq(best.to, 'hint-to');
+
+  document.getElementById('feedback').textContent = 'Goed gevonden! ✓';
+  document.getElementById('feedback').className = 'feedback correct';
+  document.getElementById('prompt').textContent = puzzle.bestMove + ' was de beste zet.';
+
+  solved.add(puzzle.id);
+  try { localStorage.setItem('gk-solved', JSON.stringify(Array.from(solved))); } catch(e) {}
+  updateProgress();
+  showUitleg(puzzle, false);
+  showNextBtn();
+}
+
+function onWrong() {
+  document.getElementById('feedback').textContent = 'Dat is niet de beste zet. Probeer nog eens.';
+  document.getElementById('feedback').className = 'feedback wrong';
+  document.querySelectorAll('.sq').forEach(function(el) {
+    void el.offsetWidth;
+    el.classList.remove('wrong-flash');
+  });
+  setTimeout(function() {
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+  }, 2000);
+}
+
+function revealAnswer() {
+  var puzzle = puzzles[order[currentIdx]];
+  var best = findBestMoveSquares(puzzle.fen, puzzle.bestMove);
+  state = 'revealed';
+  clearHighlights();
+  if (best) {
+    highlightSq(best.from, 'hint-from');
+    highlightSq(best.to, 'hint-to');
+  }
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('prompt').textContent = 'Het antwoord was: ' + puzzle.bestMove;
+  showUitleg(puzzle, true);
+  showNextBtn();
+}
+
+function showUitleg(puzzle, wasRevealed) {
+  var box = document.getElementById('uitleg-box');
+  box.style.display = 'block';
+  box.className = wasRevealed ? 'uitleg-box revealed' : 'uitleg-box';
+  document.getElementById('uitleg-title').textContent = wasRevealed
+    ? 'Je speelde ' + puzzle.playedMove + ' in de partij'
+    : 'Waarom ' + puzzle.bestMove + '?';
+  document.getElementById('uitleg-text').textContent = puzzle.uitleg;
+
+  var diff = puzzle.evalBefore - puzzle.evalAfterPlayed;
+  var sign = diff >= 0 ? '+' : '';
+  document.getElementById('uitleg-eval').textContent =
+    'Evaluatie: ' + fmtEval(puzzle.evalBefore) + ' → ' + fmtEval(puzzle.evalAfterPlayed) +
+    ' na ' + puzzle.playedMove + ' (' + sign + diff.toFixed(1) + ')';
+
+  var link = document.getElementById('uitleg-link');
+  link.href = puzzle.gameUrl;
+  link.textContent = 'Bekijk op Lichess (zet ' + puzzle.moveNumber + ') →';
+}
+
+function fmtEval(v) {
+  return (v >= 0 ? '+' : '') + v.toFixed(1);
+}
+
+function showNextBtn() {
+  document.getElementById('btn-reveal').classList.add('hidden');
+  var isLast = currentIdx >= order.length - 1;
+  if (isLast) {
+    document.getElementById('btn-next').classList.add('hidden');
+    document.getElementById('btn-shuffle').classList.remove('hidden');
+  } else {
+    document.getElementById('btn-next').classList.remove('hidden');
+    document.getElementById('btn-shuffle').classList.add('hidden');
+  }
+}
+
+function nextPuzzle() {
+  currentIdx++;
+  if (currentIdx >= order.length) {
+    currentIdx = order.length - 1;
+    return;
+  }
+  showPuzzle();
+}
+
+function showPuzzle() {
+  var puzzle = puzzles[order[currentIdx]];
+  state = 'playing';
+  selectedSq = null;
+
+  renderBoard(puzzle);
+
+  document.getElementById('puzzle-num').textContent = 'Puzzel ' + (currentIdx + 1) + '/' + order.length;
+  document.getElementById('game-info').textContent =
+    'vs ' + puzzle.opponent + ' · ' + formatDate(puzzle.date) + ' · je speelde met ' +
+    (puzzle.color === 'white' ? 'wit' : 'zwart');
+  document.getElementById('theme-display').innerHTML =
+    '<span class="theme-tag">' + puzzle.theme + '</span>';
+  document.getElementById('prompt').textContent = 'Wat had je hier moeten spelen?';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('uitleg-box').style.display = 'none';
+
+  document.getElementById('btn-reveal').classList.remove('hidden');
+  document.getElementById('btn-next').classList.add('hidden');
+  document.getElementById('btn-shuffle').classList.add('hidden');
+
+  updateProgress();
+}
+
+function formatDate(iso) {
+  var parts = iso.split('-');
+  var months = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+  return parseInt(parts[2]) + ' ' + months[parseInt(parts[1]) - 1] + ' ' + parts[0];
+}
+
+function updateProgress() {
+  var total = puzzles.length;
+  var count = 0;
+  for (var i = 0; i < puzzles.length; i++) {
+    if (solved.has(puzzles[i].id)) count++;
+  }
+  document.getElementById('score-display').textContent = count + '/' + total + ' opgelost';
+}
+
+function shuffle(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  return arr;
+}
+
+function shuffleAndRestart() {
+  order = shuffle(Array.from({length: puzzles.length}, function(_, i) { return i; }));
+  currentIdx = 0;
+  showPuzzle();
+}
+
+function init() {
+  fetch('../chess/gemiste-kansen.json')
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      puzzles = data;
+      order = shuffle(Array.from({length: puzzles.length}, function(_, i) { return i; }));
+      showPuzzle();
+    })
+    .catch(function(err) {
+      document.getElementById('board').innerHTML =
+        '<p style="grid-column:1/-1;padding:20px;text-align:center;font-size:.9em;color:#cf222e">' +
+        'Kon puzzeldata niet laden. Probeer de pagina te vernieuwen.</p>';
+    });
+}
+
+init();
+</script>
+</body>
+</html>
