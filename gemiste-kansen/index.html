@@ -14,7 +14,7 @@ h1{font-size:1.4em;margin-bottom:4px}
 .score{font-weight:600;color:#1a7f37}
 
 .board-wrap{position:relative;width:100%;max-width:400px;margin:0 auto 10px}
-.board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border-radius:4px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.18);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.board{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));aspect-ratio:1;border-radius:4px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.18);touch-action:manipulation;user-select:none;-webkit-user-select:none}
 
 .sq{position:relative;display:flex;align-items:center;justify-content:center;font-size:min(10vw,42px);line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s}
 .sq.light{background:#f0d9b5}
