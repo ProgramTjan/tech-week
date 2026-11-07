@@ -46,5 +46,21 @@
     "evalAfterPlayed": -5.05,
     "theme": "eigen zet laat iets open",
     "uitleg": "Na 14.b4? kan zwart met 14...Bxc3 de ongedekte toren op a1 via de geopende diagonaal aanvallen. Met 14.Qd2 bleef de stelling in evenwicht."
+  },
+  {
+    "id": "ixHttfIs-24w",
+    "gameUrl": "https://lichess.org/ixHttfIs#47",
+    "date": "2026-11-02",
+    "opponent": "noukette",
+    "color": "white",
+    "moveNumber": 24,
+    "fen": "7r/B1q2kbp/5pp1/3pp3/8/Q7/P1P2PPP/1R4K1 w - - 0 24",
+    "sideToMove": "w",
+    "bestMove": "Qa6",
+    "playedMove": "Bb6",
+    "evalBefore": 6.2,
+    "evalAfterPlayed": 0.0,
+    "theme": "zevende rij / gevangen dame",
+    "uitleg": "Met 24.Qa6! dekt wit het veld b7 en dreigt 25.Rb7: de zwarte dame op c7 heeft dan geen veilig veld meer en in de hoofdvariant van Stockfish geeft zwart de dame voor de toren. Na 24.Bb6? pakt zwart met 24...Qxc2 een pion en is het volgens Stockfish gelijk."
   }
 ]
