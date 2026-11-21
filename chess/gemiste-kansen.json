@@ -78,5 +78,21 @@
     "evalAfterPlayed": 0.8,
     "theme": "penning",
     "uitleg": "Met 16...Be4! pent zwart het paard op f3 tegen de koning op g2 en zet hij de loper op d3 onder druk. Ruilt wit met 17.Bxe4 dxe4, dan staat het paard op f3 aangevallen door de pion en kijkt de loper op b8 naar het paard op f4. Na 16...Bxd3? 17.Nxd3 is de druk weg en zakt het voordeel van ongeveer +2.5 naar +0.8."
+  },
+  {
+    "id": "aLjQ7JHj-25b",
+    "gameUrl": "https://lichess.org/aLjQ7JHj#50",
+    "date": "2026-11-15",
+    "opponent": "vadaro",
+    "color": "black",
+    "moveNumber": 25,
+    "fen": "3r4/ppb1kp2/2p1p3/2P1P1p1/1P1B3p/P2RKP2/6PP/8 b - - 7 25",
+    "sideToMove": "b",
+    "bestMove": "Rd5",
+    "playedMove": "a6",
+    "evalBefore": 3.1,
+    "evalAfterPlayed": 0.0,
+    "theme": "dubbele aanval op een pion",
+    "uitleg": "Met 25...Rd5! valt zwart de pion op e5 twee keer aan, met de toren en de loper op c7, terwijl alleen de loper op d4 hem dekt. In alle hoofdvarianten van Stockfish wint zwart die pion en staat hij ongeveer +3; na 25...a6? was het volgens Stockfish gelijk."
   }
 ]
