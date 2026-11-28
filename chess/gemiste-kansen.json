@@ -94,5 +94,21 @@
     "evalAfterPlayed": 0.0,
     "theme": "dubbele aanval op een pion",
     "uitleg": "Met 25...Rd5! valt zwart de pion op e5 twee keer aan, met de toren en de loper op c7, terwijl alleen de loper op d4 hem dekt. In alle hoofdvarianten van Stockfish wint zwart die pion en staat hij ongeveer +3; na 25...a6? was het volgens Stockfish gelijk."
+  },
+  {
+    "id": "p9bRabG2-31w",
+    "gameUrl": "https://lichess.org/p9bRabG2#61",
+    "date": "2026-11-25",
+    "opponent": "elismil",
+    "color": "white",
+    "moveNumber": 31,
+    "fen": "r3r2k/3R3p/5p2/4b1p1/6Q1/pq6/5BPP/2R3K1 w - - 0 31",
+    "sideToMove": "w",
+    "bestMove": "Qf5",
+    "playedMove": "Qh5",
+    "evalBefore": "#8",
+    "evalAfterPlayed": -4.86,
+    "theme": "stille zet / mat",
+    "uitleg": "Met 31.Qf5! dreigt wit 32.Qxh7 mat, omdat de toren op d7 het veld h7 dekt, en tegelijk valt de dame f6 aan. Stockfish vindt na 31.Qf5 een gedwongen mat in 8. Na 31.Qh5? weert zwart zich met 31...Qg8 en staat zwart volgens Stockfish ongeveer 4,9 pionnen beter."
   }
 ]
